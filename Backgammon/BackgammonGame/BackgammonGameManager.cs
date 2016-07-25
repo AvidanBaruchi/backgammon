@@ -12,10 +12,13 @@ namespace BackgammonGame
         private Player _playerOne;
         private Player _playerTwo;
         private Player _currentPlayer;
+        private Dice _dice = new Dice();
+        private List<int> _currentDiceValues;
 
         public BackgammonGameManager(string playerOneName, string playerTwoName)
         {
             IsGameOver = false;
+            _dice.Roll();
             initPlayers(playerOneName, playerTwoName);
         }
 
@@ -41,10 +44,9 @@ namespace BackgammonGame
 
         }
 
-        public IEnumerable<MoveDescription> GetPossibleMoves()
-        {
+        public IEnumerable<MoveDescription> GetPossibleMoves { get; private set; }
 
-        }
+        public List<int> GetDiceValues => new List<int>(_dice.Values);
 
         public Jail GetJail() => _board.Jail;
 
@@ -63,6 +65,31 @@ namespace BackgammonGame
                 }
 
                 return pointsInfo;
+            }
+        }
+
+        private void NewRound()
+        {
+            _dice.Roll();
+            _currentDiceValues = _dice.Values;
+            ComputePossibleMoves();
+        }
+
+        private void ComputePossibleMoves()
+        {
+            if (_currentPlayer.Status == PlayerStatus.Playing)
+            {
+
+            }
+
+            if (_currentPlayer.Status == PlayerStatus.InJail)
+            {
+
+            }
+
+            if (_currentPlayer.Status == PlayerStatus.FoldingOut)
+            {
+
             }
         }
     }

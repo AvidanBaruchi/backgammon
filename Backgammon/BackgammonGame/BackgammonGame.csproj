@@ -48,8 +48,10 @@
   <ItemGroup>
     <Compile Include="BackgammonGameManager.cs" />
     <Compile Include="Board.cs" />
+    <Compile Include="Dice.cs" />
     <Compile Include="Jail.cs" />
     <Compile Include="MoveDescription.cs" />
+    <Compile Include="MovesCalculator.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="PlayerInfo.cs" />
     <Compile Include="Point.cs" />
