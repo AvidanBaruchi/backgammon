@@ -12,21 +12,15 @@ namespace BackgammonGame
         Right
     }
 
-    public enum MoveType
-    {
-        OnBoard,
-        ExitFromJail,
-        FoldOut
-    }
-
     public class MoveDescription
     {
-        public MoveDescription(int from, int to, MoveDirection direction, MoveType moveType)
+        public MoveDescription(int from, int to, MoveDirection direction, PlayerStatus playerStatus, PlayerId playerId)
         {
             From = from;
             To = to;
             Direction = direction;
-            MoveType = moveType;
+            PlayerStatus = PlayerStatus;
+            PlayerId = playerId;
         }
 
         public int From { get; set; }
@@ -35,6 +29,8 @@ namespace BackgammonGame
 
         public MoveDirection Direction { get; set; }
 
-        public MoveType MoveType { get; set; }
+        public PlayerStatus PlayerStatus { get; set; }
+
+        public PlayerId PlayerId { get; set; }
     }
 }
