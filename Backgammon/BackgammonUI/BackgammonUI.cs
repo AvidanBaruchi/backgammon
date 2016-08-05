@@ -9,7 +9,7 @@ namespace BackgammonUI
 {
     public class BackgammonUI
     {
-        private BackgammonGameManager _game = new BackgammonGameManager();
+        private BackgammonGameManager _game = new BackgammonGameManager("mama", "daddy");
         private StringBuilder _builder = new StringBuilder();
         private ConsoleColor _defaultColor = Console.ForegroundColor;
 

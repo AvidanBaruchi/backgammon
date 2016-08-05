@@ -12,7 +12,7 @@ namespace BackgammonGame
         Right
     }
 
-    public class MoveDescription
+    public class MoveDescription : IEquatable<MoveDescription>
     {
         public MoveDescription(int from, int to, MoveDirection direction, PlayerStatus playerStatus, PlayerId playerId)
         {
@@ -32,5 +32,57 @@ namespace BackgammonGame
         public PlayerStatus PlayerStatus { get; set; }
 
         public PlayerId PlayerId { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            var move = obj as MoveDescription;
+
+            if(obj == null)
+            {
+                return false;
+            }
+
+            return Equals(move);
+        }
+
+        public bool Equals(MoveDescription other)
+        {
+            if(other == null)
+            {
+                return false;
+            }
+
+            if(PlayerId != other.PlayerId)
+            {
+                return false;
+            }
+
+            if(Direction != other.Direction)
+            {
+                return false;
+            }
+
+            if(PlayerStatus != other.PlayerStatus)
+            {
+                return false;
+            }
+
+            if(PlayerStatus == PlayerStatus.InJail)
+            {
+                return To == other.To;
+            }
+            
+            if(PlayerStatus == PlayerStatus.FoldingOut)
+            {
+                return From == other.From;
+            }
+
+            return From == other.From && To == other.To;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }

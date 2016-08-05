@@ -13,12 +13,15 @@ namespace BackgammonGame
         private Player _playerTwo;
         private Player _currentPlayer;
         private Dice _dice = new Dice();
-        private List<int> _currentDiceValues;
+        private IEnumerable<MoveDescription> _possibleMoves = null;
+        private MovesCalculator _movesCalculator = null;
+        private int _movesCounter = 0;
 
         public BackgammonGameManager(string playerOneName, string playerTwoName)
         {
             IsGameOver = false;
             _dice.Roll();
+            _movesCounter = _dice.Values.Count;
             initPlayers(playerOneName, playerTwoName);
         }
 
@@ -39,17 +42,44 @@ namespace BackgammonGame
 
         public bool IsGameOver { get; private set; }
 
-        public void MakeMove(MoveDescription move)
+        public bool MakeMove(int from, int to)
         {
+            var requestedMove = new MoveDescription(from, to, _currentPlayer.Direction, _currentPlayer.Status, _currentPlayer.PlayerId);
 
+            if(!CanMakeMove(requestedMove))
+            {
+                return false;
+            }
+
+            if(requestedMove.PlayerStatus == PlayerStatus.Playing)
+            {
+                _board[from].Remove();
+                _board[to].Add(requestedMove.PlayerId);
+            }
+            else if(requestedMove.PlayerStatus == PlayerStatus.FoldingOut)
+            {
+                _board[from].Remove();
+            }
+            else if(requestedMove.PlayerStatus == PlayerStatus.InJail)
+            {
+                _board[to].Add(requestedMove.PlayerId);
+            }
+            
+            _movesCounter--;
+            CheckPlayersStatuses();
+            SwitchPlayer();
+            CheckGameOver();
+
+            return true;
         }
 
-        public IEnumerable<MoveDescription> GetPossibleMoves { get; private set; }
 
-        public List<int> GetDiceValues => new List<int>(_dice.Values);
+
+        public IEnumerable<int> GetDiceValues => _dice.Values;
 
         public Jail GetJail() => _board.Jail;
 
+        //IEnumerable<PointInfo>
         public PointInfo[] Points
         {
             get
@@ -68,29 +98,67 @@ namespace BackgammonGame
             }
         }
 
+        private void CheckGameOver()
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void CheckPlayersStatuses()
+        {
+            CheckPlayerStatus(_playerOne);
+            CheckPlayerStatus(_playerTwo);
+        }
+
+        private void CheckPlayerStatus(Player player)
+        {
+            if(_board.Jail.IsInJail(player.PlayerId))
+            {
+                player.Status = PlayerStatus.InJail;
+            }
+            else if()
+        }
+
+        private void SwitchPlayer()
+        {
+            if (_movesCounter == 0)
+            {
+                _currentPlayer = _currentPlayer == _playerOne ? _playerTwo : _playerOne;
+            }
+        }
+
         private void NewRound()
         {
             _dice.Roll();
-            _currentDiceValues = _dice.Values;
             ComputePossibleMoves();
         }
 
         private void ComputePossibleMoves()
         {
-            if (_currentPlayer.Status == PlayerStatus.Playing)
+            _movesCalculator = new MovesCalculator(_board.Points);
+            _possibleMoves = _movesCalculator.GetPossibleMoves(_currentPlayer, _dice);
+
+            //if (_currentPlayer.Status == PlayerStatus.Playing)
+            //{
+
+            //}
+
+            //if (_currentPlayer.Status == PlayerStatus.InJail)
+            //{
+
+            //}
+
+            //if (_currentPlayer.Status == PlayerStatus.FoldingOut)
+            //{
+
+            //}
+        }
+
+        private bool CanMakeMove(MoveDescription move)
+        {
+            return _possibleMoves.Any(currentMove =>
             {
-
-            }
-
-            if (_currentPlayer.Status == PlayerStatus.InJail)
-            {
-
-            }
-
-            if (_currentPlayer.Status == PlayerStatus.FoldingOut)
-            {
-
-            }
+                return currentMove == move;
+            });
         }
     }
 }

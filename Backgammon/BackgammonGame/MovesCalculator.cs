@@ -30,6 +30,8 @@ namespace BackgammonGame
                         let move = new MoveDescription(fromIndex, toIndex, player.Direction, player.Status, player.PlayerId)
                         where _rules.CanMove(player.Status)(move)
                         select move;
+
+            return query.ToList();
         }
 
         private int CalcToIndex(Player player, int from, int diceValue)
