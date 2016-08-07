@@ -21,7 +21,7 @@ namespace BackgammonGame
         public List<MoveDescription> GetPossibleMoves(Player player, List<int> dice)
         {
             var query = from point in _points
-                        where point.PlayerId == player.PlayerId
+                        where IsValidPoint(player, point)//where point.PlayerId == player.PlayerId
                         from diceValue in dice
                         let fromIndex = point.Index
                         let toIndex = CalcToIndex(player, fromIndex, diceValue)
@@ -36,7 +36,13 @@ namespace BackgammonGame
         {
             if (player.Status == PlayerStatus.InJail)
             {
-                   
+                var homeFrom = player.Direction == MoveDirection.Right ? 0 : 18;
+                var homeTo = player.Direction == MoveDirection.Right ? 5 : 23;
+
+                if (point.Index <= homeFrom || point.Index >= homeTo) return false;
+
+                return point.PlayerId == player.PlayerId ||
+                    point.Status != PointStatus.Multi;
             }
 
             return point.PlayerId == player.PlayerId;
