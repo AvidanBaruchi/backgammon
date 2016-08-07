@@ -42,7 +42,7 @@ namespace BackgammonGame
                 if (point.Index <= homeFrom || point.Index >= homeTo) return false;
 
                 return point.PlayerId == player.PlayerId ||
-                    point.Status != PointStatus.Multi;
+                    point.Status != PointStatus.Multi; 
             }
 
             return point.PlayerId == player.PlayerId;
