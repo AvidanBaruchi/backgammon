@@ -33,7 +33,7 @@ namespace BackgammonGame
         {
             if (!InBounds(move)) return false;
 
-            if (_points[move.From].Player == _points[move.To].Player
+            if (_points[move.From].PlayerId == _points[move.To].PlayerId
                 || _points[move.To].Status == PointStatus.Single
                 || _points[move.To].Status == PointStatus.Empty)
             {
@@ -47,7 +47,7 @@ namespace BackgammonGame
         {
             if (!InBounds(move)) return false;
 
-            if (move.PlayerId == _points[move.To].Player
+            if (move.PlayerId == _points[move.To].PlayerId
                 || _points[move.To].Status != PointStatus.Multi)
             {
                 return true;
@@ -61,7 +61,7 @@ namespace BackgammonGame
             // Check distances. it can be normal move too.
             if (!InBounds(move)) return false;
 
-            if (_points[move.From].Player == move.PlayerId)
+            if (_points[move.From].PlayerId == move.PlayerId)
             {
                 return true;
             }
@@ -71,9 +71,9 @@ namespace BackgammonGame
 
         private bool InBounds(MoveDescription move)
         {
-            if (move.From < 0) return false;
+            if (move.From < 0 || move.From > 23) return false;
 
-            if (move.To > 23) return false;
+            if (move.To < 0 || move.To > 23) return false;
 
             return true;
         }

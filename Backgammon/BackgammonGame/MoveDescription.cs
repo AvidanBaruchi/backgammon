@@ -12,14 +12,14 @@ namespace BackgammonGame
         Right
     }
 
-    public class MoveDescription : IEquatable<MoveDescription>
+    internal class MoveDescription : IEquatable<MoveDescription>
     {
         public MoveDescription(int from, int to, MoveDirection direction, PlayerStatus playerStatus, PlayerId playerId)
         {
             From = from;
             To = to;
             Direction = direction;
-            PlayerStatus = PlayerStatus;
+            PlayerStatus = playerStatus;
             PlayerId = playerId;
         }
 

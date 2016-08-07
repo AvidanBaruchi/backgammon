@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -13,10 +14,10 @@ namespace BackgammonGame
         Two
     }
 
-    public class Board
+    internal class Board : IJail, IEnumerable<PointInfo>
     {
         private readonly Point[] _points = new Point[24];
-        private readonly Jail _jail = new Jail();
+        private readonly Dictionary<PlayerId, int> _jails = new Dictionary<PlayerId, int>();
 
         public Board()
         {
@@ -39,6 +40,97 @@ namespace BackgammonGame
             FillPoint(12, 5, PlayerId.Two);
             FillPoint(7, 3, PlayerId.Two);
             FillPoint(5, 5, PlayerId.Two);
+
+            _jails[PlayerId.One] = 0;
+            _jails[PlayerId.Two] = 0;
+        }
+
+        public bool TryAdd(int index, PlayerId id)
+        {
+            if (!CheckBounds(index))
+            {
+                return false;
+            }
+
+            try
+            {
+                if (this[index].PlayerId != id && this[index].Status == PointStatus.Single)
+                {
+                    var playerId = this[index].PlayerId;
+                    this[index].Add(id);
+                    //Jail.JailPlayer(this[index].Player);
+                    _jails[playerId]++;
+                }
+                else {
+                    this[index].Add(id);
+                }
+
+                return true;
+            }
+            catch (InvalidOperationException e)
+            {
+                return false;
+            }
+        }
+
+        public bool Remove(int index)
+        {
+            if(!CheckBounds(index))
+            {
+                return false;
+            }
+
+            this[index].Remove();
+            return true;
+        }
+
+        public bool ExitFromJail(int to, PlayerId id)
+        {
+            if (_jails.ContainsKey(id) && _jails[id] > 0)
+            {
+                var isAdded = TryAdd(to, id);
+                
+                if(isAdded)
+                {
+                    _jails[id]--;
+                }
+
+                return isAdded;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool IsInJail(PlayerId id)
+        {
+            return GetJailCount(id) > 0;
+        }
+
+        public bool IsInBoard(PlayerId playerId)
+        {
+            if (IsInJail(playerId)) return true;
+
+            foreach(var point in this)
+            {
+                if(point.Player == playerId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public int GetJailCount(PlayerId id)
+        {
+            if(_jails.ContainsKey(id))
+            {
+                return _jails[id];
+            }
+
+            return 0;
         }
 
         public Point this[int index]
@@ -62,7 +154,18 @@ namespace BackgammonGame
 
         public ReadOnlyCollection<Point> Points => new ReadOnlyCollection<Point>(_points);
 
-        public Jail Jail => Jail.CopyFrom(_jail);
+        public IEnumerator<PointInfo> GetEnumerator()
+        {
+            for (int i = 0; i < 24; i++)
+            {
+                yield return new PointInfo(this[i].Size, i, this[i].PlayerId);
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
         private void FillPoint(int index, int count, PlayerId player)
         {
@@ -70,6 +173,16 @@ namespace BackgammonGame
             {
                 this[index].Add(player);
             }
+        }
+
+        private bool CheckBounds(int index)
+        {
+            if (index < 0 || index > 23)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

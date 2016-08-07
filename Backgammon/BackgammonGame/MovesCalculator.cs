@@ -18,13 +18,11 @@ namespace BackgammonGame
             _rules = new GameRules(_points);
         }
 
-        public List<MoveDescription> GetPossibleMoves(Player player, Dice dice)
+        public List<MoveDescription> GetPossibleMoves(Player player, List<int> dice)
         {
-            var diceValues = dice.Values;
-
             var query = from point in _points
-                        where point.Player == player.PlayerId
-                        from diceValue in dice.Values
+                        where point.PlayerId == player.PlayerId
+                        from diceValue in dice
                         let fromIndex = point.Index
                         let toIndex = CalcToIndex(player, fromIndex, diceValue)
                         let move = new MoveDescription(fromIndex, toIndex, player.Direction, player.Status, player.PlayerId)
@@ -32,6 +30,16 @@ namespace BackgammonGame
                         select move;
 
             return query.ToList();
+        }
+
+        private bool IsValidPoint(Player player, Point point)
+        {
+            if (player.Status == PlayerStatus.InJail)
+            {
+                   
+            }
+
+            return point.PlayerId == player.PlayerId;
         }
 
         private int CalcToIndex(Player player, int from, int diceValue)

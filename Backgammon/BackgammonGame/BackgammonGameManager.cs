@@ -13,30 +13,33 @@ namespace BackgammonGame
         private Player _playerTwo;
         private Player _currentPlayer;
         private Dice _dice = new Dice();
+        private List<int> _currentDice;
         private IEnumerable<MoveDescription> _possibleMoves = null;
         private MovesCalculator _movesCalculator = null;
-        private int _movesCounter = 0;
 
         public BackgammonGameManager(string playerOneName, string playerTwoName)
         {
             IsGameOver = false;
             _dice.Roll();
-            _movesCounter = _dice.Values.Count;
+            _currentDice = new List<int>(_dice.Values);
             initPlayers(playerOneName, playerTwoName);
         }
 
         private void initPlayers(string playerOneName, string playerTwoName)
         {
-            _playerOne = new Player(playerOneName, MoveDirection.Left,
+            _playerOne = new Player(playerOneName, MoveDirection.Right,
                 PlayerId.One,
                 PlayerStatus.Playing);
 
-            _playerTwo = new Player(playerTwoName, MoveDirection.Right,
+            _playerTwo = new Player(playerTwoName, MoveDirection.Left,
                 PlayerId.Two,
                 PlayerStatus.Playing);
 
             _currentPlayer = _playerOne;
+            ComputePossibleMoves();
         }
+
+        public event Action BoardStateChanged;
 
         public PlayerInfo CurrentPlayer => new PlayerInfo(_currentPlayer.Name, _currentPlayer.PlayerId);
 
@@ -44,6 +47,8 @@ namespace BackgammonGame
 
         public bool MakeMove(int from, int to)
         {
+            if (IsGameOver) return false;
+
             var requestedMove = new MoveDescription(from, to, _currentPlayer.Direction, _currentPlayer.Status, _currentPlayer.PlayerId);
 
             if(!CanMakeMove(requestedMove))
@@ -53,54 +58,44 @@ namespace BackgammonGame
 
             if(requestedMove.PlayerStatus == PlayerStatus.Playing)
             {
-                _board[from].Remove();
-                _board[to].Add(requestedMove.PlayerId);
+                _board.Remove(from);
+                _board.TryAdd(to, requestedMove.PlayerId);
             }
             else if(requestedMove.PlayerStatus == PlayerStatus.FoldingOut)
             {
-                _board[from].Remove();
+                _board.Remove(from);
             }
             else if(requestedMove.PlayerStatus == PlayerStatus.InJail)
             {
-                _board[to].Add(requestedMove.PlayerId);
+                _board.ExitFromJail(to, requestedMove.PlayerId);
             }
-            
-            _movesCounter--;
+
+            _currentDice.Remove(Math.Abs(requestedMove.From - requestedMove.To));
             CheckPlayersStatuses();
             SwitchPlayer();
             CheckGameOver();
+            ComputePossibleMoves();
+            OnBoardStateChanged();
 
             return true;
         }
 
-
-
         public IEnumerable<int> GetDiceValues => _dice.Values;
 
-        public Jail GetJail() => _board.Jail;
+        public IJail GetJail() => _board;
 
-        //IEnumerable<PointInfo>
-        public PointInfo[] Points
-        {
-            get
-            {
-                var pointsInfo = new PointInfo[24];
-                var points = _board.Points;
-                Point currentPoint = null;
-
-                for (int i = 0; i < points.Count; i++)
-                {
-                    currentPoint = _board[i];
-                    pointsInfo[i] = new PointInfo(currentPoint.Size, i, currentPoint.Player);
-                }
-
-                return pointsInfo;
-            }
-        }
+        public IEnumerable<PointInfo> Points => _board;
 
         private void CheckGameOver()
         {
-            //throw new NotImplementedException();
+            if (!_board.IsInBoard(_playerOne.PlayerId))
+            {
+                IsGameOver = true;
+            }
+            else if(!_board.IsInBoard(_playerTwo.PlayerId))
+            {
+                IsGameOver = true;
+            }
         }
 
         private void CheckPlayersStatuses()
@@ -111,31 +106,61 @@ namespace BackgammonGame
 
         private void CheckPlayerStatus(Player player)
         {
-            if(_board.Jail.IsInJail(player.PlayerId))
+            if(_board.IsInJail(player.PlayerId))
             {
                 player.Status = PlayerStatus.InJail;
             }
-            else if()
+            else if(IsFoldingOut(player))
+            {
+                player.Status = PlayerStatus.FoldingOut;
+            }
+            else
+            {
+                player.Status = PlayerStatus.Playing;
+            }
+        }
+
+        private bool IsFoldingOut(Player player)
+        {
+            int from = player.Direction == MoveDirection.Right ? 6 : 0;
+            int to = player.Direction == MoveDirection.Right ? 23 : 17;
+
+            if(_board.IsInJail(player.PlayerId))
+            {
+                return false;
+            }
+
+            for (int i = from; i <= to; i++)
+            {
+                if(_board[i].PlayerId == player.PlayerId)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private void SwitchPlayer()
         {
-            if (_movesCounter == 0)
+            if (_currentDice.Count == 0)
             {
                 _currentPlayer = _currentPlayer == _playerOne ? _playerTwo : _playerOne;
+                NewRound();
             }
         }
 
         private void NewRound()
         {
             _dice.Roll();
+            _currentDice = new List<int>(_dice.Values);
             ComputePossibleMoves();
         }
 
         private void ComputePossibleMoves()
         {
             _movesCalculator = new MovesCalculator(_board.Points);
-            _possibleMoves = _movesCalculator.GetPossibleMoves(_currentPlayer, _dice);
+            _possibleMoves = _movesCalculator.GetPossibleMoves(_currentPlayer, _currentDice);
 
             //if (_currentPlayer.Status == PlayerStatus.Playing)
             //{
@@ -157,8 +182,13 @@ namespace BackgammonGame
         {
             return _possibleMoves.Any(currentMove =>
             {
-                return currentMove == move;
+                return currentMove.Equals(move);
             });
+        }
+
+        private void OnBoardStateChanged()
+        {
+            BoardStateChanged?.Invoke();
         }
     }
 }

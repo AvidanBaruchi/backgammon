@@ -15,21 +15,76 @@ namespace BackgammonUI
 
         public BackgammonUI()
         {
-
+            _game.BoardStateChanged += PrintBoard;
         }
 
         public void Start()
         {
+            PrintBoard();
+
             while (!_game.IsGameOver)
             {
-                PrintBoard();
-                Console.ReadLine();
+                PlayerProcedure();
             }
+        }
+
+        private void PlayerProcedure()
+        {
+            bool isOk = false;
+            MoveHolder move;
+
+            while (!isOk)
+            {
+                move = GetPlayerMove();
+                isOk = _game.MakeMove(move.From, move.To);
+
+                if(!isOk)
+                {
+                    Console.WriteLine("Wrong Move!");
+                }
+            }
+        }
+
+        private MoveHolder GetPlayerMove()
+        {
+            bool isParsed = false;
+            string input = string.Empty;
+            MoveHolder move = new MoveHolder();
+
+            Console.WriteLine("Please select a move: (AZ, KB for regular move, X for exit from jail of folding out)");
+
+            while(!isParsed)
+            {
+                input = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(input)) continue;
+
+                if(input.Length == 1)
+                {
+                    input = input + 'A';
+                }
+
+                input = input.ToUpper();
+
+                if (char.IsLetter(input[0]) && char.IsLetter(input[1]))
+                {
+                    move.From = input[0] - 'A';
+                    move.To = input[1] - 'A';
+                    isParsed = true;
+                }
+
+                if(!isParsed)
+                {
+                    Console.WriteLine("Please Try Again!");
+                }
+            }
+
+            return move;
         }
 
         private void PrintBoard()
         {
-            var points = _game.Points;
+            var points = _game.Points.ToArray();
             var jail = _game.GetJail();
             char representativeChar = 'A';
 
@@ -76,10 +131,44 @@ namespace BackgammonUI
             Console.WriteLine(_builder.ToString());
             Console.WriteLine();
 
-            //foreach (var item in _game.Points)
-            //{
-            //    Console.WriteLine($"Index = {item.Index}, Size = {item.Size}, Player = {item.Player}");
-            //}
+            PrintJail();
+            PrintCurrentPlayerAndDice();
+        }
+
+        private void PrintJail()
+        {
+            var jail = _game.GetJail();
+            Console.Write($"Jail ==> ");
+
+            if(jail.IsInJail(PlayerId.One))
+            {
+                Console.ForegroundColor = GetColorByPlayer(PlayerId.One);
+                Console.Write($"{jail.GetJailCount(PlayerId.One)} ");
+            }
+
+            if (jail.IsInJail(PlayerId.Two))
+            {
+                Console.ForegroundColor = GetColorByPlayer(PlayerId.Two);
+                Console.Write($"{jail.GetJailCount(PlayerId.Two)}");
+            }
+
+            Console.ForegroundColor = _defaultColor;
+        }
+
+        private void PrintCurrentPlayerAndDice()
+        {
+            var dice = _game.GetDiceValues.ToArray();
+            Console.ForegroundColor = GetColorByPlayer(_game.CurrentPlayer.PlayerId);
+            Console.WriteLine($"Current Player: {_game.CurrentPlayer.Name}");
+            Console.ForegroundColor = _defaultColor;
+            Console.Write("Dices: ");
+
+            for (int i = 0; i < dice.Length; i++)
+            {
+                Console.Write($"{dice[i]}, ");
+            }
+
+            Console.WriteLine();
         }
 
         private ConsoleColor GetColorByPlayer(PlayerId player)
@@ -92,7 +181,7 @@ namespace BackgammonUI
             }
             else if(player == PlayerId.Two)
             {
-                color = ConsoleColor.White;
+                color = ConsoleColor.Green;
             }
 
             return color;

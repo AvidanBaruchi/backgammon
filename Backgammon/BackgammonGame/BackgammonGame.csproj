@@ -50,7 +50,7 @@
     <Compile Include="Board.cs" />
     <Compile Include="Dice.cs" />
     <Compile Include="GameRules.cs" />
-    <Compile Include="Jail.cs" />
+    <Compile Include="IJail.cs" />
     <Compile Include="MoveDescription.cs" />
     <Compile Include="MovesCalculator.cs" />
     <Compile Include="Player.cs" />

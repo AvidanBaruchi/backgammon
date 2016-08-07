@@ -32,7 +32,7 @@ namespace BackgammonGame
 
         public PointStatus Status { get; private set; }
 
-        public PlayerId Player
+        public PlayerId PlayerId
         {
             get
             {
@@ -78,9 +78,8 @@ namespace BackgammonGame
         {
             if (Size > 0)
             {
-                int size = Size;
                 _checkers.Pop();
-                Status = size == 0 ? PointStatus.Empty : (size == 1 ? PointStatus.Single : PointStatus.Multi);
+                Status = Size == 0 ? PointStatus.Empty : (Size == 1 ? PointStatus.Single : PointStatus.Multi);
             }
         }
     }
