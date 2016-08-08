@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BackgammonUI
@@ -16,6 +17,7 @@ namespace BackgammonUI
         public BackgammonUI()
         {
             _game.BoardStateChanged += PrintBoard;
+            _game.NoPossibleMoves += NotifyNoPossibleMoves;
         }
 
         public void Start()
@@ -80,6 +82,18 @@ namespace BackgammonUI
             }
 
             return move;
+        }
+
+        private void NotifyNoPossibleMoves(PlayerInfo player, IEnumerable<int> dice)
+        {
+            Console.WriteLine($"{Environment.NewLine}Player {player.Name} has no possible moves for his dice!");
+
+            foreach (var die in dice)
+            {
+                Console.Write(die +  ", ");
+            }
+
+            Thread.Sleep(2000);
         }
 
         private void PrintBoard()

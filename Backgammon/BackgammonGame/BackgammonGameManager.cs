@@ -17,6 +17,9 @@ namespace BackgammonGame
         private IEnumerable<MoveDescription> _possibleMoves = null;
         private MovesCalculator _movesCalculator = null;
 
+        public event Action BoardStateChanged;
+        public event Action<PlayerInfo, IEnumerable<int>> NoPossibleMoves;
+
         public BackgammonGameManager(string playerOneName, string playerTwoName)
         {
             IsGameOver = false;
@@ -38,8 +41,6 @@ namespace BackgammonGame
             _currentPlayer = _playerOne;
             ComputePossibleMoves();
         }
-
-        public event Action BoardStateChanged;
 
         public PlayerInfo CurrentPlayer => new PlayerInfo(_currentPlayer.Name, _currentPlayer.PlayerId);
 
@@ -209,6 +210,13 @@ namespace BackgammonGame
         {
             _movesCalculator = new MovesCalculator(_board.Points);
             _possibleMoves = _movesCalculator.GetPossibleMoves(_currentPlayer, _currentDice);
+
+            if(!_possibleMoves.Any())
+            {
+                OnNoPossibleMoves();
+                _currentDice.Clear();
+                SwitchPlayer();
+            }
         }
 
         private bool CanMakeMove(MoveDescription move)
@@ -222,6 +230,11 @@ namespace BackgammonGame
         private void OnBoardStateChanged()
         {
             BoardStateChanged?.Invoke();
+        }
+
+        private void OnNoPossibleMoves()
+        {
+            NoPossibleMoves?.Invoke(CurrentPlayer, new List<int>(_currentDice));
         }
     }
 }
