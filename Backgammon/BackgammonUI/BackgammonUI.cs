@@ -108,6 +108,11 @@ namespace BackgammonUI
 
             for (int i = 0; i < 12; i++)
             {
+                if(i == 6)
+                {
+                    _builder.Append($"{"| |", 6}");
+                }
+
                 _builder.AppendFormat($"{representativeChar, 4}");
                 representativeChar++;
             }
@@ -117,6 +122,12 @@ namespace BackgammonUI
 
             for (int i = 0; i < 12; i++)
             {
+                if(i == 6)
+                {
+                    Console.ForegroundColor = _defaultColor;
+                    Console.Write($"{"| |", 6}");
+                }
+
                 Console.ForegroundColor = GetColorByPlayer(points[i].Player);
                 Console.Write($"{points[i].Size, 4}");
             }
@@ -126,6 +137,12 @@ namespace BackgammonUI
 
             for (int i = 23; i > 11; i--)
             {
+                if (i == 17)
+                {
+                    Console.ForegroundColor = _defaultColor;
+                    Console.Write($"{"| |", 6}");
+                }
+
                 Console.ForegroundColor = GetColorByPlayer(points[i].Player);
                 Console.Write($"{points[i].Size,4}");
             }
@@ -137,6 +154,10 @@ namespace BackgammonUI
 
             for (int i = 23; i > 11; i--)
             {
+                if (i == 17)
+                {
+                    _builder.Append($"{"| |", 6}");
+                }
                 _builder.AppendFormat($"{representativeChar,4}");
                 representativeChar--;
             }
