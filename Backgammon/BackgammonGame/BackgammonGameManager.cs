@@ -45,32 +45,40 @@ namespace BackgammonGame
 
         public bool IsGameOver { get; private set; }
 
+
+        /// <summary>
+        /// Tries to make a move based on two indices numbers.
+        /// Equal 'from' and 'to' numbers, determines a specail move request, like folding out or exit from jail.
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns>True if success, otherwise, false.</returns>
         public bool MakeMove(int from, int to)
         {
             if (IsGameOver) return false;
 
             var requestedMove = new MoveDescription(from, to, _currentPlayer.Direction, _currentPlayer.Status, _currentPlayer.PlayerId);
 
-            if(!CanMakeMove(requestedMove))
+            if (!CanMakeMove(requestedMove))
             {
                 return false;
             }
 
-            if(requestedMove.PlayerStatus == PlayerStatus.Playing)
+            if (requestedMove.PlayerStatus == PlayerStatus.Playing || requestedMove.From != requestedMove.To)
             {
                 _board.Remove(from);
                 _board.TryAdd(to, requestedMove.PlayerId);
             }
-            else if(requestedMove.PlayerStatus == PlayerStatus.FoldingOut)
+            else if (requestedMove.PlayerStatus == PlayerStatus.FoldingOut)
             {
                 _board.Remove(from);
             }
-            else if(requestedMove.PlayerStatus == PlayerStatus.InJail)
+            else if (requestedMove.PlayerStatus == PlayerStatus.InJail)
             {
                 _board.ExitFromJail(to, requestedMove.PlayerId);
             }
 
-            _currentDice.Remove(Math.Abs(requestedMove.From - requestedMove.To));
+            RemoveDiceValue(requestedMove);
             CheckPlayersStatuses();
             SwitchPlayer();
             CheckGameOver();
@@ -78,6 +86,47 @@ namespace BackgammonGame
             OnBoardStateChanged();
 
             return true;
+        }
+
+        private void RemoveDiceValue(MoveDescription requestedMove)
+        {
+            if(requestedMove.From != requestedMove.To)
+            {
+                _currentDice.Remove(Math.Abs(requestedMove.From - requestedMove.To));
+            }
+            else
+            {
+                int die = requestedMove.Direction == MoveDirection.Left ? requestedMove.From + 1 :
+                    24 - requestedMove.From;
+                bool isRemoved = _currentDice.Remove(die);
+
+                if(!isRemoved)
+                {
+                    _currentDice.Remove(_currentDice.Max());
+                }
+            }
+
+            //if(requestedMove.PlayerStatus == PlayerStatus.Playing)
+            //{
+            //    _currentDice.Remove(Math.Abs(requestedMove.From - requestedMove.To));
+            //}
+            //else
+            //{
+            //    int value = requestedMove.PlayerStatus == PlayerStatus.InJail ? requestedMove.To : requestedMove.From;
+            //    int dice = requestedMove.Direction == MoveDirection.Right ? value + 1 :
+            //        24 - value;
+
+            //    if(requestedMove.PlayerStatus == PlayerStatus.FoldingOut)
+            //    {
+            //        // get closest!
+            //        if(!_currentDice.Contains(dice))
+            //        {
+            //            _currentDice.Remove(_currentDice.Max());
+            //        }
+            //    }
+
+            //    _currentDice.Remove(dice);
+            //}
         }
 
         public IEnumerable<int> GetDiceValues => _dice.Values;
@@ -122,8 +171,8 @@ namespace BackgammonGame
 
         private bool IsFoldingOut(Player player)
         {
-            int from = player.Direction == MoveDirection.Right ? 6 : 0;
-            int to = player.Direction == MoveDirection.Right ? 23 : 17;
+            int from = player.Direction == MoveDirection.Left ? 6 : 0;
+            int to = player.Direction == MoveDirection.Left ? 23 : 17;
 
             if(_board.IsInJail(player.PlayerId))
             {
@@ -161,21 +210,6 @@ namespace BackgammonGame
         {
             _movesCalculator = new MovesCalculator(_board.Points);
             _possibleMoves = _movesCalculator.GetPossibleMoves(_currentPlayer, _currentDice);
-
-            //if (_currentPlayer.Status == PlayerStatus.Playing)
-            //{
-
-            //}
-
-            //if (_currentPlayer.Status == PlayerStatus.InJail)
-            //{
-
-            //}
-
-            //if (_currentPlayer.Status == PlayerStatus.FoldingOut)
-            //{
-
-            //}
         }
 
         private bool CanMakeMove(MoveDescription move)

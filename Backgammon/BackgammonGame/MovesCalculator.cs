@@ -20,46 +20,61 @@ namespace BackgammonGame
 
         public List<MoveDescription> GetPossibleMoves(Player player, List<int> dice)
         {
-            var query = from point in _points
-                        where IsValidPoint(player, point)//where point.PlayerId == player.PlayerId
+            var query = (from point in _points
+                        where IsValidPoint(player.PlayerId, player.Status, player.Direction, point)//where point.PlayerId == player.PlayerId
                         from diceValue in dice
                         let fromIndex = point.Index
-                        let toIndex = CalcToIndex(player, fromIndex, diceValue)
+                        let toIndex = CalcToIndex(player.Status, player.Direction, fromIndex, diceValue)
                         let move = new MoveDescription(fromIndex, toIndex, player.Direction, player.Status, player.PlayerId)
-                        where _rules.CanMove(player.Status)(move)
-                        select move;
+                        where _rules.CanMove(player.Status)(move, diceValue)
+                        select move).ToList();
 
-            return query.ToList();
+            if(player.Status == PlayerStatus.FoldingOut)
+            {
+                // calculate normal moves too
+                var normalMoves = (from point in _points
+                                  where IsValidPoint(player.PlayerId, PlayerStatus.Playing, player.Direction, point)
+                                  from dieValue in dice
+                                  let fromIndex = point.Index
+                                  let toIndex = CalcToIndex(PlayerStatus.Playing, player.Direction, fromIndex, dieValue)
+                                  let move = new MoveDescription(fromIndex, toIndex, player.Direction, PlayerStatus.Playing, player.PlayerId)
+                                  where _rules.CanMove(PlayerStatus.Playing)(move, dieValue)
+                                  select move).ToArray();
+
+                query.AddRange(normalMoves);
+            }
+
+            return query;
         }
 
-        private bool IsValidPoint(Player player, Point point)
+        private bool IsValidPoint(PlayerId id ,PlayerStatus playerStatus, MoveDirection direction, Point point)
         {
-            if (player.Status == PlayerStatus.InJail)
+            if (playerStatus == PlayerStatus.InJail)
             {
-                var homeFrom = player.Direction == MoveDirection.Right ? 0 : 18;
-                var homeTo = player.Direction == MoveDirection.Right ? 5 : 23;
+                var homeFrom = direction == MoveDirection.Right ? 0 : 18;
+                var homeTo = direction == MoveDirection.Right ? 5 : 23;
 
                 if (point.Index <= homeFrom || point.Index >= homeTo) return false;
 
-                return point.PlayerId == player.PlayerId ||
+                return point.PlayerId == id ||
                     point.Status != PointStatus.Multi; 
             }
 
-            return point.PlayerId == player.PlayerId;
+            return point.PlayerId == id;
         }
 
-        private int CalcToIndex(Player player, int from, int diceValue)
+        private int CalcToIndex(PlayerStatus playerStatus, MoveDirection direction, int from, int diceValue)
         {
-            diceValue = player.Direction == MoveDirection.Right ? diceValue : -diceValue;
+            diceValue = direction == MoveDirection.Right ? diceValue : -diceValue;
 
-            if (player.Status == PlayerStatus.FoldingOut)
+            if (playerStatus == PlayerStatus.FoldingOut)
             {
                 return from;
             }
 
-            if (player.Status == PlayerStatus.InJail)
+            if (playerStatus == PlayerStatus.InJail)
             {
-                return player.Direction == MoveDirection.Right ? diceValue - 1 : 24 + diceValue;
+                return direction == MoveDirection.Right ? diceValue - 1 : 24 + diceValue;
             }
 
             return from + diceValue;

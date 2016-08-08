@@ -61,7 +61,7 @@ namespace BackgammonUI
 
                 if(input.Length == 1)
                 {
-                    input = input + 'A';
+                    input = input + input;
                 }
 
                 input = input.ToUpper();
@@ -153,6 +153,7 @@ namespace BackgammonUI
             }
 
             Console.ForegroundColor = _defaultColor;
+            Console.WriteLine();
         }
 
         private void PrintCurrentPlayerAndDice()

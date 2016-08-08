@@ -31,15 +31,29 @@ namespace BackgammonGame
                 _points[i] = new Point(i);
             }
 
-            FillPoint(0, 2, PlayerId.One);
-            FillPoint(11, 5, PlayerId.One);
-            FillPoint(16, 3, PlayerId.One);
-            FillPoint(18, 5, PlayerId.One);
+            //FillPoint(0, 2, PlayerId.One);
+            //FillPoint(11, 5, PlayerId.One);
+            //FillPoint(16, 3, PlayerId.One);
+            //FillPoint(18, 5, PlayerId.One);
 
-            FillPoint(23, 2, PlayerId.Two);
-            FillPoint(12, 5, PlayerId.Two);
-            FillPoint(7, 3, PlayerId.Two);
-            FillPoint(5, 5, PlayerId.Two);
+            //FillPoint(23, 2, PlayerId.Two);
+            //FillPoint(12, 5, PlayerId.Two);
+            //FillPoint(7, 3, PlayerId.Two);
+            //FillPoint(5, 5, PlayerId.Two);
+
+            FillPoint(23, 2, PlayerId.One);
+            FillPoint(22, 3, PlayerId.One);
+            FillPoint(21, 3, PlayerId.One);
+            FillPoint(20, 3, PlayerId.One);
+            FillPoint(19, 3, PlayerId.One);
+            FillPoint(17, 1, PlayerId.One);
+
+            FillPoint(0, 2, PlayerId.Two);
+            FillPoint(1, 3, PlayerId.Two);
+            FillPoint(2, 3, PlayerId.Two);
+            FillPoint(3, 3, PlayerId.Two);
+            FillPoint(4, 3, PlayerId.Two);
+            FillPoint(6, 1, PlayerId.Two);
 
             _jails[PlayerId.One] = 0;
             _jails[PlayerId.Two] = 0;

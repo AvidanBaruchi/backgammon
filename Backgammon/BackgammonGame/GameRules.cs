@@ -11,12 +11,12 @@ namespace BackgammonGame
     internal class GameRules
     {
         private ReadOnlyCollection<Point> _points;
-        private Dictionary<PlayerStatus, Func<MoveDescription, bool>> _movesValidations = null;
+        private Dictionary<PlayerStatus, Func<MoveDescription, int ,bool>> _movesValidations = null;
         
         public GameRules(ReadOnlyCollection<Point> points)
         {
             _points = points;
-            _movesValidations = new Dictionary<PlayerStatus, Func<MoveDescription, bool>>
+            _movesValidations = new Dictionary<PlayerStatus, Func<MoveDescription, int, bool>>
             {
                 { PlayerStatus.Playing, CanMove},
                 { PlayerStatus.InJail, CanExitFromJail},
@@ -24,12 +24,12 @@ namespace BackgammonGame
             };
         }
 
-        public Func<MoveDescription, bool> CanMove(PlayerStatus status)
+        public Func<MoveDescription, int, bool> CanMove(PlayerStatus status)
         {
             return _movesValidations[status];
         }
 
-        private bool CanMove(MoveDescription move)
+        private bool CanMove(MoveDescription move, int dieValue)
         {
             if (!InBounds(move)) return false;
 
@@ -43,7 +43,7 @@ namespace BackgammonGame
             return false;
         }
 
-        private bool CanExitFromJail(MoveDescription move)
+        private bool CanExitFromJail(MoveDescription move, int dieValue)
         {
             if (!InBounds(move)) return false;
 
@@ -56,17 +56,25 @@ namespace BackgammonGame
             return false;
         }
 
-        private bool CanFoldOut(MoveDescription move)
+        private bool CanFoldOut(MoveDescription move, int dieValue)
         {
             // Check distances. it can be normal move too.
             if (!InBounds(move)) return false;
 
-            if (_points[move.From].PlayerId == move.PlayerId)
+            if (_points[move.From].PlayerId != move.PlayerId)
             {
-                return true;
+                return false;
             }
 
-            return false;
+            int foldIndex = move.Direction == MoveDirection.Left ? dieValue - 1 :
+                24 - dieValue;
+
+            if(move.From != foldIndex)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private bool InBounds(MoveDescription move)
