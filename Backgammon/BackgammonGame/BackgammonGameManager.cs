@@ -195,15 +195,14 @@ namespace BackgammonGame
             if (_currentDice.Count == 0)
             {
                 _currentPlayer = _currentPlayer == _playerOne ? _playerTwo : _playerOne;
-                NewRound();
+                Roll();
             }
         }
 
-        private void NewRound()
+        private void Roll()
         {
             _dice.Roll();
             _currentDice = new List<int>(_dice.Values);
-            ComputePossibleMoves();
         }
 
         private void ComputePossibleMoves()

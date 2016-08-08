@@ -41,6 +41,31 @@ namespace BackgammonGame
                                   where _rules.CanMove(PlayerStatus.Playing)(move, dieValue)
                                   select move).ToArray();
 
+                
+
+                // if there are moves that correlate exactly to dice value, remove the rest!
+                var foldingMovesCorrelateToDice = query.Where(move => dice.Contains(move.From + 1) || dice.Contains(24 - move.From));
+
+                if (foldingMovesCorrelateToDice.Any())
+                {
+                    query.RemoveAll(move => !foldingMovesCorrelateToDice.Contains(move));
+                }
+                else
+                {
+                    int minMax = -1;
+
+                    if(player.Direction == MoveDirection.Left)
+                    {
+                        minMax = query.Max(move => move.From);
+                    }
+                    else
+                    {
+                        minMax = query.Min(move => move.From);
+                    }
+
+                    query.RemoveAll(move => move.PlayerStatus == PlayerStatus.FoldingOut && move.From != minMax);
+                }
+
                 query.AddRange(normalMoves);
             }
 

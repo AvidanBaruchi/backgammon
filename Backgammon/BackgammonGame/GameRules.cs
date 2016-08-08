@@ -71,7 +71,16 @@ namespace BackgammonGame
 
             if(move.From != foldIndex)
             {
-                return false;
+                if(move.Direction == MoveDirection.Left)
+                {
+                    return move.From <= foldIndex;
+                }
+                else
+                {
+                    return move.From >= foldIndex;
+                }
+
+                //return false;
             }
 
             return true;
