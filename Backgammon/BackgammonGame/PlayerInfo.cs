@@ -6,16 +6,26 @@ using System.Threading.Tasks;
 
 namespace BackgammonGame
 {
-    public class PlayerInfo
+    public interface IPlayerInfo
     {
-        public PlayerInfo(string name, PlayerId playerId)
+        string Name { get; }
+        PlayerId PlayerId { get; }
+        bool IsHuman { get; }
+    }
+
+    public class PlayerInfo : IPlayerInfo
+    {
+        public PlayerInfo(string name, PlayerId playerId, bool isHuman)
         {
             Name = name;
             PlayerId = playerId;
+            IsHuman = isHuman;
         }
 
         public string Name { get; private set; }
 
         public PlayerId PlayerId { get; private set; }
+
+        public bool IsHuman { get; private set; }
     }
 }

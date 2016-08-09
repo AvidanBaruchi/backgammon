@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BackgammonGame;
 
-namespace BackgammonUI
+namespace BackgammonGame
 {
     class Program
     {
@@ -14,6 +14,8 @@ namespace BackgammonUI
             BackgammonUI ui = new BackgammonUI();
 
             ui.Start();
+
+            Console.ReadLine();
         }
     }
 }

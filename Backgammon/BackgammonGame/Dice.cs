@@ -24,8 +24,8 @@ namespace BackgammonGame
         {
             Values.Clear();
 
-            int first = _random.Next(1, 6);
-            int second = _random.Next(1, 6);
+            int first = _random.Next(1, 7);
+            int second = _random.Next(1, 7);
 
             Values.Add(first);
             Values.Add(second);

@@ -79,7 +79,7 @@ namespace BackgammonGame
                 var homeFrom = direction == MoveDirection.Right ? 0 : 18;
                 var homeTo = direction == MoveDirection.Right ? 5 : 23;
 
-                if (point.Index <= homeFrom || point.Index >= homeTo) return false;
+                if (point.Index < homeFrom || point.Index > homeTo) return false;
 
                 return point.PlayerId == id ||
                     point.Status != PointStatus.Multi; 
@@ -100,6 +100,7 @@ namespace BackgammonGame
             if (playerStatus == PlayerStatus.InJail)
             {
                 return direction == MoveDirection.Right ? diceValue - 1 : 24 + diceValue;
+                //return from;
             }
 
             return from + diceValue;

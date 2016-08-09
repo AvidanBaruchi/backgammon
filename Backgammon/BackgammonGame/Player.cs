@@ -13,14 +13,15 @@ namespace BackgammonGame
         FoldingOut
     }
 
-    internal class Player
+    internal class Player : IPlayerInfo
     {
-        public Player(string name, MoveDirection direction, PlayerId playerId, PlayerStatus status)
+        public Player(string name, MoveDirection direction, PlayerId playerId, PlayerStatus status, bool isHuman)
         {
             Name = name;
             Direction = direction;
             PlayerId = playerId;
             Status = status;
+            IsHuman = isHuman;
         }
 
         public string Name { get; private set; }
@@ -30,5 +31,7 @@ namespace BackgammonGame
         public PlayerId PlayerId { get; private set; }
 
         public PlayerStatus Status { get; set; }
+
+        public bool IsHuman { get; private set; }
     }
 }

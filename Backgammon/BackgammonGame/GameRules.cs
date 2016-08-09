@@ -47,8 +47,8 @@ namespace BackgammonGame
         {
             if (!InBounds(move)) return false;
 
-            if (move.PlayerId == _points[move.To].PlayerId
-                || _points[move.To].Status != PointStatus.Multi)
+            if (move.From == move.To && (move.PlayerId == _points[move.To].PlayerId
+                || _points[move.To].Status != PointStatus.Multi))
             {
                 return true;
             }

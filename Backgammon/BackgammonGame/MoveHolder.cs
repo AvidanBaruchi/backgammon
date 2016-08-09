@@ -4,10 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BackgammonUI
+namespace BackgammonGame
 {
-    internal struct MoveHolder
+    public struct MoveHolder
     {
+        public MoveHolder(int from, int to)
+        {
+            From = from;
+            To = to;
+        }
+
         public int From { get; set; }
 
         public int To { get; set; }

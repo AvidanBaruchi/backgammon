@@ -6,18 +6,20 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BackgammonUI
+namespace BackgammonGame
 {
     public class BackgammonUI
     {
-        private BackgammonGameManager _game = new BackgammonGameManager("mama", "daddy");
+        private BackgammonGameManager _game = new BackgammonGameManager("mama", "daddy", GameType.PlayerVsComputer);
         private StringBuilder _builder = new StringBuilder();
         private ConsoleColor _defaultColor = Console.ForegroundColor;
+        private BackgammonDefaultAI _artificialIntelligence;
 
         public BackgammonUI()
         {
             _game.BoardStateChanged += PrintBoard;
             _game.NoPossibleMoves += NotifyNoPossibleMoves;
+            _artificialIntelligence = new BackgammonDefaultAI();
         }
 
         public void Start()
@@ -26,11 +28,27 @@ namespace BackgammonUI
 
             while (!_game.IsGameOver)
             {
-                PlayerProcedure();
+                if(_game.CurrentPlayer.IsHuman)
+                {
+                    HumanPlayerProcedure();
+                }
+                else
+                {
+                    AIProcedure();
+                }
             }
+
+            DisplayWinner();
         }
 
-        private void PlayerProcedure()
+        private void AIProcedure()
+        {
+            MoveHolder holder = _artificialIntelligence.GetMove(_game.GetPossibleMoves(), _game.Points);
+            Thread.Sleep(1500);
+            _game.MakeMove(holder);
+        }
+
+        private void HumanPlayerProcedure()
         {
             bool isOk = false;
             MoveHolder move;
@@ -38,7 +56,7 @@ namespace BackgammonUI
             while (!isOk)
             {
                 move = GetPlayerMove();
-                isOk = _game.MakeMove(move.From, move.To);
+                isOk = _game.MakeMove(move);
 
                 if(!isOk)
                 {
@@ -84,7 +102,15 @@ namespace BackgammonUI
             return move;
         }
 
-        private void NotifyNoPossibleMoves(PlayerInfo player, IEnumerable<int> dice)
+        private void DisplayWinner()
+        {
+            var winner = _game.Winner;
+            Console.Clear();
+            Console.ForegroundColor = GetColorByPlayer(winner.PlayerId);
+            Console.WriteLine($"The Winner is {winner.Name}");
+        }
+
+        private void NotifyNoPossibleMoves(IPlayerInfo player, IEnumerable<int> dice)
         {
             Console.WriteLine($"{Environment.NewLine}Player {player.Name} has no possible moves for his dice!");
 
@@ -93,7 +119,7 @@ namespace BackgammonUI
                 Console.Write(die +  ", ");
             }
 
-            Thread.Sleep(2000);
+            Thread.Sleep(4000);
         }
 
         private void PrintBoard()

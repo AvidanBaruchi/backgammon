@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace BackgammonGame
 {
+    public enum GameType
+    {
+        TwoPlayers,
+        PlayerVsComputer
+    }
+
     public class BackgammonGameManager
     {
         private Board _board = new Board();
@@ -18,47 +24,61 @@ namespace BackgammonGame
         private MovesCalculator _movesCalculator = null;
 
         public event Action BoardStateChanged;
-        public event Action<PlayerInfo, IEnumerable<int>> NoPossibleMoves;
+        public event Action<IPlayerInfo, IEnumerable<int>> NoPossibleMoves;
 
-        public BackgammonGameManager(string playerOneName, string playerTwoName)
+        public BackgammonGameManager(string playerOneName, string playerTwoName, GameType gameType)
         {
             IsGameOver = false;
             _dice.Roll();
             _currentDice = new List<int>(_dice.Values);
-            initPlayers(playerOneName, playerTwoName);
+            initPlayers(playerOneName, playerTwoName, gameType);
+            Winner = null;
         }
 
-        private void initPlayers(string playerOneName, string playerTwoName)
+        private void initPlayers(string playerOneName, string playerTwoName, GameType gameType)
         {
             _playerOne = new Player(playerOneName, MoveDirection.Right,
                 PlayerId.One,
-                PlayerStatus.Playing);
+                PlayerStatus.Playing, 
+                true);
 
-            _playerTwo = new Player(playerTwoName, MoveDirection.Left,
+            if(gameType == GameType.TwoPlayers)
+            {
+                _playerTwo = new Player(playerTwoName, MoveDirection.Left,
                 PlayerId.Two,
-                PlayerStatus.Playing);
+                PlayerStatus.Playing,
+                true);
+            }
+            else
+            {
+                _playerTwo = new Player(playerTwoName, MoveDirection.Left,
+                    PlayerId.Two,
+                    PlayerStatus.Playing,
+                    false);
+            }
 
             _currentPlayer = _playerOne;
             ComputePossibleMoves();
         }
 
-        public PlayerInfo CurrentPlayer => new PlayerInfo(_currentPlayer.Name, _currentPlayer.PlayerId);
+        public IPlayerInfo CurrentPlayer => _currentPlayer;
 
         public bool IsGameOver { get; private set; }
 
+        public IPlayerInfo Winner { get; private set; }
 
         /// <summary>
         /// Tries to make a move based on two indices numbers.
-        /// Equal 'from' and 'to' numbers, determines a specail move request, like folding out or exit from jail.
+        /// Equal 'from' and 'to' numbers, determines a special move request, like folding out or exit from jail.
         /// </summary>
         /// <param name="from"></param>
         /// <param name="to"></param>
         /// <returns>True if success, otherwise, false.</returns>
-        public bool MakeMove(int from, int to)
+        public bool MakeMove(MoveHolder moveHolder)
         {
             if (IsGameOver) return false;
 
-            var requestedMove = new MoveDescription(from, to, _currentPlayer.Direction, _currentPlayer.Status, _currentPlayer.PlayerId);
+            var requestedMove = new MoveDescription(moveHolder.From, moveHolder.To, _currentPlayer.Direction, _currentPlayer.Status, _currentPlayer.PlayerId);
 
             if (!CanMakeMove(requestedMove))
             {
@@ -67,16 +87,16 @@ namespace BackgammonGame
 
             if (requestedMove.PlayerStatus == PlayerStatus.Playing || requestedMove.From != requestedMove.To)
             {
-                _board.Remove(from);
-                _board.TryAdd(to, requestedMove.PlayerId);
+                _board.Remove(moveHolder.From);
+                _board.TryAdd(moveHolder.To, requestedMove.PlayerId);
             }
             else if (requestedMove.PlayerStatus == PlayerStatus.FoldingOut)
             {
-                _board.Remove(from);
+                _board.Remove(moveHolder.From);
             }
             else if (requestedMove.PlayerStatus == PlayerStatus.InJail)
             {
-                _board.ExitFromJail(to, requestedMove.PlayerId);
+                _board.ExitFromJail(moveHolder.To, requestedMove.PlayerId);
             }
 
             RemoveDiceValue(requestedMove);
@@ -97,37 +117,24 @@ namespace BackgammonGame
             }
             else
             {
-                int die = requestedMove.Direction == MoveDirection.Left ? requestedMove.From + 1 :
-                    24 - requestedMove.From;
-                bool isRemoved = _currentDice.Remove(die);
-
-                if(!isRemoved)
+                if (requestedMove.PlayerStatus == PlayerStatus.FoldingOut)
                 {
-                    _currentDice.Remove(_currentDice.Max());
+                    int die = requestedMove.Direction == MoveDirection.Left ? requestedMove.From + 1 :
+                                24 - requestedMove.From;
+                    bool isRemoved = _currentDice.Remove(die);
+
+                    if (!isRemoved)
+                    {
+                        _currentDice.Remove(_currentDice.Max());
+                    } 
+                }
+                else
+                {
+                    int die = requestedMove.Direction == MoveDirection.Right ? requestedMove.From + 1 :
+                        24 - requestedMove.From;
+                    _currentDice.Remove(die);
                 }
             }
-
-            //if(requestedMove.PlayerStatus == PlayerStatus.Playing)
-            //{
-            //    _currentDice.Remove(Math.Abs(requestedMove.From - requestedMove.To));
-            //}
-            //else
-            //{
-            //    int value = requestedMove.PlayerStatus == PlayerStatus.InJail ? requestedMove.To : requestedMove.From;
-            //    int dice = requestedMove.Direction == MoveDirection.Right ? value + 1 :
-            //        24 - value;
-
-            //    if(requestedMove.PlayerStatus == PlayerStatus.FoldingOut)
-            //    {
-            //        // get closest!
-            //        if(!_currentDice.Contains(dice))
-            //        {
-            //            _currentDice.Remove(_currentDice.Max());
-            //        }
-            //    }
-
-            //    _currentDice.Remove(dice);
-            //}
         }
 
         public IEnumerable<int> GetDiceValues => _dice.Values;
@@ -136,15 +143,25 @@ namespace BackgammonGame
 
         public IEnumerable<PointInfo> Points => _board;
 
+        public IEnumerable<IMoveDescription> GetPossibleMoves()
+        {
+            foreach (var move in _possibleMoves)
+            {
+                yield return move;
+            }
+        }
+
         private void CheckGameOver()
         {
             if (!_board.IsInBoard(_playerOne.PlayerId))
             {
                 IsGameOver = true;
+                Winner = _playerOne;
             }
             else if(!_board.IsInBoard(_playerTwo.PlayerId))
             {
                 IsGameOver = true;
+                Winner = _playerTwo;
             }
         }
 
@@ -216,6 +233,7 @@ namespace BackgammonGame
                 OnNoPossibleMoves();
                 _currentDice.Clear();
                 SwitchPlayer();
+                ComputePossibleMoves();
             }
         }
 
@@ -234,7 +252,11 @@ namespace BackgammonGame
 
         private void OnNoPossibleMoves()
         {
-            NoPossibleMoves?.Invoke(CurrentPlayer, new List<int>(_currentDice));
+            NoPossibleMoves?.Invoke(new PlayerInfo(
+                _currentPlayer.Name, 
+                _currentPlayer.PlayerId, 
+                _currentPlayer.IsHuman), 
+                new List<int>(_currentDice));
         }
     }
 }
