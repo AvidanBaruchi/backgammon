@@ -12,7 +12,22 @@ namespace BackgammonGame
         PlayerVsComputer
     }
 
-    public class BackgammonGameManager
+    public interface IBackgammonGameManager
+    {
+        IPlayerInfo CurrentPlayer { get; }
+        bool IsGameOver { get; }
+        IPlayerInfo Winner { get; }
+        bool MakeMove(MoveHolder moveHolder);
+        IEnumerable<int> GetDiceValues { get; }
+        IJail GetJail();
+        IEnumerable<PointInfo> Points { get; }
+        IEnumerable<IMoveDescription> GetPossibleMoves();
+
+        event Action BoardStateChanged;
+        event Action<IPlayerInfo, IEnumerable<int>> NoPossibleMoves;
+    }
+
+    public class BackgammonGameManager: IBackgammonGameManager
     {
         private Board _board = new Board();
         private Player _playerOne;

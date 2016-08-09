@@ -73,21 +73,6 @@ namespace BackgammonGame
                 return false;
             }
 
-            //if(PlayerStatus != other.PlayerStatus)
-            //{
-            //    return false;
-            //}
-
-            //if(PlayerStatus == PlayerStatus.InJail)
-            //{
-            //    return To == other.To;
-            //}
-            
-            //if(PlayerStatus == PlayerStatus.FoldingOut)
-            //{
-            //    return From == other.From;
-            //}
-
             return From == other.From && To == other.To;
         }
 

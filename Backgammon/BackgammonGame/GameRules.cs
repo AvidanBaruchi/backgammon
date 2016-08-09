@@ -58,7 +58,6 @@ namespace BackgammonGame
 
         private bool CanFoldOut(MoveDescription move, int dieValue)
         {
-            // Check distances. it can be normal move too.
             if (!InBounds(move)) return false;
 
             if (_points[move.From].PlayerId != move.PlayerId)
@@ -79,8 +78,6 @@ namespace BackgammonGame
                 {
                     return move.From >= foldIndex;
                 }
-
-                //return false;
             }
 
             return true;

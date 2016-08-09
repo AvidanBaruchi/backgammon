@@ -11,16 +11,11 @@ namespace BackgammonGame
 {
     public class BackgammonUI
     {
-        private BackgammonGameManager _game = null;
+        private IBackgammonGameManager _game = null;
         private StringBuilder _builder = new StringBuilder();
         private ConsoleColor _defaultColor = Console.ForegroundColor;
         private BackgammonDefaultAI _artificialIntelligence;
         private GameType _gameType;
-
-        public BackgammonUI()
-        {
-            
-        }
 
         public void Start()
         {

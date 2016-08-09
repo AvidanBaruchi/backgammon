@@ -20,8 +20,8 @@ namespace BackgammonGame
 
         public List<MoveDescription> GetPossibleMoves(Player player, List<int> dice)
         {
-            var query = (from point in _points
-                        where IsValidPoint(player.PlayerId, player.Status, player.Direction, point)//where point.PlayerId == player.PlayerId
+            var statusMoves = (from point in _points
+                        where IsValidPoint(player.PlayerId, player.Status, player.Direction, point)
                         from diceValue in dice
                         let fromIndex = point.Index
                         let toIndex = CalcToIndex(player.Status, player.Direction, fromIndex, diceValue)
@@ -31,7 +31,6 @@ namespace BackgammonGame
 
             if(player.Status == PlayerStatus.FoldingOut)
             {
-                // calculate normal moves too
                 var normalMoves = (from point in _points
                                   where IsValidPoint(player.PlayerId, PlayerStatus.Playing, player.Direction, point)
                                   from dieValue in dice
@@ -41,12 +40,11 @@ namespace BackgammonGame
                                   where _rules.CanMove(PlayerStatus.Playing)(move, dieValue)
                                   select move).ToArray();
 
-                // if there are moves that correlate exactly to dice value, remove the rest!
-                var foldingMovesCorrelateToDice = query.Where(move => dice.Contains(move.From + 1) || dice.Contains(24 - move.From));
+                var foldingMovesCorrelateToDice = statusMoves.Where(move => dice.Contains(move.From + 1) || dice.Contains(24 - move.From));
 
                 if (foldingMovesCorrelateToDice.Any())
                 {
-                    query.RemoveAll(move => !foldingMovesCorrelateToDice.Contains(move));
+                    statusMoves.RemoveAll(move => !foldingMovesCorrelateToDice.Contains(move));
                 }
                 else
                 {
@@ -54,20 +52,20 @@ namespace BackgammonGame
 
                     if(player.Direction == MoveDirection.Left)
                     {
-                        minMax = query.Max(move => move.From);
+                        minMax = statusMoves.Max(move => move.From);
                     }
                     else
                     {
-                        minMax = query.Min(move => move.From);
+                        minMax = statusMoves.Min(move => move.From);
                     }
 
-                    query.RemoveAll(move => move.PlayerStatus == PlayerStatus.FoldingOut && move.From != minMax);
+                    statusMoves.RemoveAll(move => move.PlayerStatus == PlayerStatus.FoldingOut && move.From != minMax);
                 }
 
-                query.AddRange(normalMoves);
+                statusMoves.AddRange(normalMoves);
             }
 
-            return query;
+            return statusMoves;
         }
 
         private bool IsValidPoint(PlayerId id ,PlayerStatus playerStatus, MoveDirection direction, Point point)
