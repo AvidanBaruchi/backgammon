@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,20 +11,20 @@ namespace BackgammonGame
 {
     public class BackgammonUI
     {
-        private BackgammonGameManager _game = new BackgammonGameManager("mama", "daddy", GameType.PlayerVsComputer);
+        private BackgammonGameManager _game = null;
         private StringBuilder _builder = new StringBuilder();
         private ConsoleColor _defaultColor = Console.ForegroundColor;
         private BackgammonDefaultAI _artificialIntelligence;
+        private GameType _gameType;
 
         public BackgammonUI()
         {
-            _game.BoardStateChanged += PrintBoard;
-            _game.NoPossibleMoves += NotifyNoPossibleMoves;
-            _artificialIntelligence = new BackgammonDefaultAI();
+            
         }
 
         public void Start()
         {
+            PrepareGame();
             PrintBoard();
 
             while (!_game.IsGameOver)
@@ -39,6 +40,88 @@ namespace BackgammonGame
             }
 
             DisplayWinner();
+        }
+
+        private void PrepareGame()
+        {
+            string firstPlayerName = string.Empty;
+            string secondPlayerName = string.Empty;
+
+            Console.WriteLine("Please Enter First Player Name:");
+            firstPlayerName = GetString();
+            GetGameType();
+
+            if(_gameType == GameType.TwoPlayers)
+            {
+                Console.WriteLine("Please Second First Player Name:");
+                secondPlayerName = GetString();
+            }
+            else
+            {
+                secondPlayerName = "OK Computer";
+            }
+
+            _game = new BackgammonGameManager(firstPlayerName, secondPlayerName, _gameType);
+            _game.BoardStateChanged += PrintBoard;
+            _game.NoPossibleMoves += NotifyNoPossibleMoves;
+            _artificialIntelligence = new BackgammonDefaultAI();
+        }
+
+        private void GetGameType()
+        {
+            Console.WriteLine("Select Game Type:");
+            var gameTypes = Enum.GetNames(typeof(GameType));
+            string parsedName = null;
+
+            for (int i = 1; i <= gameTypes.Length; i++)
+            {
+                parsedName = Regex.Replace(gameTypes[i - 1], "[A-Z]", (Match match) =>
+                {
+                    return " " + match.Value;
+                });
+                Console.WriteLine($"{i}. {parsedName}");
+            }
+
+            bool isSelected = false;
+            string input = null;
+            int typeNumber = 0;
+
+            while (!isSelected)
+            {
+                input = GetString();
+                isSelected = int.TryParse(input, out typeNumber);
+
+                if (typeNumber < 1 || (typeNumber > gameTypes.Length))
+                {
+                    isSelected = false;
+                }
+
+                if(!isSelected)
+                {
+                    Console.WriteLine("Not a Valid Choice");
+                }
+            }
+
+            Enum.TryParse(gameTypes[typeNumber - 1], out _gameType);
+        }
+
+        private string GetString()
+        {
+            string input = string.Empty;
+
+            while (string.IsNullOrEmpty(input))
+            {
+                input = Console.ReadLine();
+
+                input = input.Trim();
+
+                if(string.IsNullOrEmpty(input))
+                {
+                    Console.WriteLine("Not a Valid Name");
+                }
+            }
+
+            return input;
         }
 
         private void AIProcedure()

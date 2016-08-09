@@ -41,8 +41,6 @@ namespace BackgammonGame
                                   where _rules.CanMove(PlayerStatus.Playing)(move, dieValue)
                                   select move).ToArray();
 
-                
-
                 // if there are moves that correlate exactly to dice value, remove the rest!
                 var foldingMovesCorrelateToDice = query.Where(move => dice.Contains(move.From + 1) || dice.Contains(24 - move.From));
 
@@ -100,7 +98,6 @@ namespace BackgammonGame
             if (playerStatus == PlayerStatus.InJail)
             {
                 return direction == MoveDirection.Right ? diceValue - 1 : 24 + diceValue;
-                //return from;
             }
 
             return from + diceValue;
